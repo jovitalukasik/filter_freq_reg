@@ -15,9 +15,33 @@ Neural networks tend to overfit the training distribution and perform poorly on 
 [cc-by-sa-shield]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
 
 
+## Installation 
+In order to use this code, install requirements:
+```bash
+pip install -r requirements.txt
+```
 
 ## Reproduce our results
 
+- Example run with EfficientNet-B0 without any modified layers
+```
+python train.py --data_dir  DATA_DIR --output_dir OUT_DIR --model efficientnet-b0  \
+        --basis_filter None --scheduler Cosine --learning_rate 0.001 --optimizer adamw \
+        --weight_decay 0.05 --l2_reg 0 --l2_lambda 0.01 
+```
+- Example run with EfficientNet-B0 using DCT-based modifications {WD, SD} and regularization
+```
+python train.py --data_dir  DATA_DIR --output_dir OUT_DIR --model efficientnet-b0  \
+        --basis_filter WD --scheduler scheduler --learning_rate 0.001 --optimizer adamw \
+        --weight_decay 0.05 --l2_reg 1 --l2_lambda 0.01 
+```
+
+- Example run with ResNet-9 using DCT-based modifications {WD, SD} and regularization
+```
+python train.py --data_dir  DATA_DIR --output_dir OUT_DIR --model lowres_resnet9  \
+        --basis_filter WD --scheduler Step --learning_rate 0.01 --optimizer adamw \
+        --weight_decay 0.01 --l2_reg 1 --l2_lambda 0.01 
+```
 
 ## Citation 
 
