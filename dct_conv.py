@@ -10,21 +10,22 @@ import itertools
 import efficientnet_pytorch
 
 
-def replace_conv2d(module, new_cls, kernel_size = 3, dct_kernel_size=3, filter_cb=None,**kwargs):
+def replace_conv2d(module, new_cls, filter_cb=None,**kwargs):
     for name, child in module.named_children():
         if name == "basis_coef":
             continue
-        if type(child) == torch.nn.Conv2d and (not filter_cb or (filter_cb and filter_cb(child))) and child.kernel_size==(kernel_size,kernel_size)  :
-            new_module = new_cls(in_channels=child.in_channels, out_channels=child.out_channels, kernel_size=dct_kernel_size, 
+        if type(child) == torch.nn.Conv2d and (not filter_cb or (filter_cb and filter_cb(child))):
+            new_module = new_cls(in_channels=child.in_channels, out_channels=child.out_channels, kernel_size=child.kernel_size[0], 
                                  padding=child.padding, stride=child.stride, dilation=child.dilation, groups=child.groups, conv_kernel_size=child.kernel_size[0], **kwargs)
             setattr(module, name, new_module)
-        elif  type(child) == efficientnet_pytorch.utils.Conv2dStaticSamePadding and (not filter_cb or (filter_cb and filter_cb(child))) and child.kernel_size==(kernel_size,kernel_size)  :
-            new_module = new_cls(in_channels=child.in_channels, out_channels=child.out_channels, kernel_size=dct_kernel_size, 
+        elif  type(child) == efficientnet_pytorch.utils.Conv2dStaticSamePadding and (not filter_cb or (filter_cb and filter_cb(child))):
+            new_module = new_cls(in_channels=child.in_channels, out_channels=child.out_channels, kernel_size=child.kernel_size[0], 
                                  padding=child.padding, stride=child.stride, dilation=child.dilation, groups=child.groups, static_padding=child.static_padding, conv_kernel_size=child.kernel_size[0],**kwargs)
             setattr(module, name, new_module)
 
     for child in module.children():
-        replace_conv2d(child, new_cls, kernel_size, dct_kernel_size, filter_cb, **kwargs)
+        replace_conv2d(child, new_cls, filter_cb, **kwargs)
+
 
 def kaiming_uniform_receptive_(tensor, fan, a=0, mode='fan_in', nonlinearity='relu'):
     if 0 in tensor.shape:
@@ -149,11 +150,9 @@ class Signal_Decomposition(nn.Module):
         else:
             self.coefficients = torch.nn.Conv2d( in_channels*self.kernel_size**2, out_channels, 1, padding=0, bias=None, groups=groups) 
                 
-
     def forward(self, x):
         if self.static_padding is not None:
             x = self.static_padding(x)
         x = self.basis_coef(x)
         x = self.coefficients(x)                                                                                      
         return x
-

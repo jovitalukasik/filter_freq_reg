@@ -21,14 +21,9 @@ from optimizer import Optimizer, Scheduler
 import datetime
 from dct_conv import replace_conv2d, Weight_Decomposition, Signal_Decomposition
 from efficientnet_pytorch import EfficientNet
-import efficientnet_pytorch
-import torch.nn.functional as F
 from dct_losses import l2_reg
-import wandb
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
-
-
 
 
 class Trainer:
@@ -52,14 +47,10 @@ class Trainer:
             )
         
         if args.basis_filter == "WD":
-            replace_conv2d(model, Weight_Decomposition,kernel_size=args.cnn_kernel_size, dct_kernel_size=args.dct_kernel_size,  init_scale=args.init_scale)
-            if "efficientnet" in args.model: 
-                replace_conv2d(model, Weight_Decomposition, kernel_size=5, dct_kernel_size=5, init_scale=args.init_scale)
+            replace_conv2d(model, Weight_Decomposition, init_scale=args.init_scale, filter_cb = lambda m: np.array(m.kernel_size).min() >= args.min_kernel_size)
 
         if args.basis_filter == "SD":
-            replace_conv2d(model, Signal_Decomposition, kernel_size=args.cnn_kernel_size, dct_kernel_size=args.dct_kernel_size)
-            if "efficientnet" in args.model: 
-                replace_conv2d(model, Signal_Decomposition, kernel_size=5, dct_kernel_size=5)
+            replace_conv2d(model, Signal_Decomposition, filter_cb = lambda m: np.array(m.kernel_size).min() >= args.min_kernel_size)
 
         if args.load_checkpoint is not None:
 
@@ -116,7 +107,7 @@ class Trainer:
             batch_loss = loss.item() * len(y)
             batch_correct = (y_pred.argmax(axis=1) == y).sum().item()
 
-            l2_loss += l2.item()* len(y)
+            l2_loss += l2.item() * len(y)
 
             correct += batch_correct
             total_loss += batch_loss
@@ -256,7 +247,6 @@ class Trainer:
                 self.checkpoint.save(epoch, self.model, metrics)
 
 
-
 def main(args):
     print(args)
     if args.reg_diff_all:
@@ -336,12 +326,9 @@ if __name__ == "__main__":
     parser.add_argument("--reg_all_freq",           type=int, default=0, help="Wether to regularize all frequency (except 0) or only highest")
     parser.add_argument("--reg_diff",               type=int, default=0, help="Wether to force to focus on low frequency")
     parser.add_argument("--reg_diff_all",           type=int, default=0, help="Wether to force to focus on low frequency")
-
-    # Manually define Kernel size for DCT_basis
-    parser.add_argument("--dct_kernel_size",        type=int, default=3, help="Which kernel size information used for DCT")
-    parser.add_argument("--cnn_kernel_size",        type=int, default=3, help="Which conv kernel size to replace")
-
     
+    parser.add_argument("--min_kernel_size",        type=int, default=3, help="Minimum kernel size to apply basis filter")
+
     _args = parser.parse_args()
 
     main(_args)
