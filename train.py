@@ -330,10 +330,10 @@ if __name__ == "__main__":
     parser.add_argument("--init_scale",             type=str, default="kaiming_uniform", help="Choose between kaiming_uniform and kaiming_normal")
     
     # L2 regularization:
-    parser.add_argument("--l2_reg",                 type=int, default=0, help="If include L2 regularization on frequency (only for DCT)")
-    parser.add_argument("--l2_lambda",              type=float, default=0.01, help="regularization parameter for L2")
-    parser.add_argument("--reg_depth",              type=float, default=3, help="Deth of network to Reg, a third, half, all")
-    parser.add_argument("--reg_all_freq",           type=int, default=0, help="whether to regularize all frequency (except 0) or only highest")
+    parser.add_argument("--l2_reg",                 type=int, default=0, help="Wether to include L2 regularization on frequency (only for DCT)")
+    parser.add_argument("--l2_lambda",              type=float, default=0.01, help="Regularization parameter for L2")
+    parser.add_argument("--reg_depth",              type=float, default=3, help="Depth of network to Reg, a third, half, all")
+    parser.add_argument("--reg_all_freq",           type=int, default=0, help="Wether to regularize all frequency (except 0) or only highest")
     parser.add_argument("--reg_diff",               type=int, default=0, help="Wether to force to focus on low frequency")
     parser.add_argument("--reg_diff_all",           type=int, default=0, help="Wether to force to focus on low frequency")
 
